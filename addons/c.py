@@ -59,7 +59,7 @@ class MoulinetteAddon:
                 print(f"[MINOR] {filepath}: F6, comment at line {line_nb}")
 
             line_nb += 1
-        
+
         return funcs
 
     def is_variable_decl(self, filepath, line_nb, line):
@@ -67,11 +67,11 @@ class MoulinetteAddon:
         wo_a = re.match("^([a-zA-Z0-9_\\* ]*) ([a-zA-Z0-9_\*\\[\\]\\-+ ]*);", line)
         w_ma = re.match("^([a-zA-Z0-9_\\* ]*) ([a-zA-Z0-9_\*,\\[\\]\\-+ ]*) = (.*);", line)
         wo_ma = re.match("^([a-zA-Z0-9_\\* ]*) ([a-zA-Z0-9_\*,\\[\\]\\-+ ]*);", line)
-        
+
         if (w_ma or wo_ma) and not (w_a or wo_a):
             print(f"[MINOR] {filepath}: L5, multiple declarations on the same line (line {line_nb})")
             return True
-        
+
         if w_a or wo_a:
             return True
         return False
@@ -90,7 +90,7 @@ class MoulinetteAddon:
                 print(f"[MAJOR] {filepath}: F5, a function with no parameters should take (void), at line {func_line}")
             elif param_count > self.c_norm["max_params_per_func"]:
                 print(f"[MAJOR] {filepath}: F5, function takes too many parameters ({param_count}) at line {func_line}")
-            
+
             for i in range(1, func_size + 1):
                 line = func[i].strip()
                 line_nb = func_line + i + 1
@@ -108,16 +108,16 @@ class MoulinetteAddon:
 
                 if is_var_decl and not variable_decl:
                     print(f"[MINOR] {filepath}: L5, variables should be declared at the beginning of the scope of the function (line {line_nb})")
-                
+
 
             if func_size > self.c_norm["max_func_lines"]:
                 print(f"[MAJOR] {filepath}: F4, too long function at line {func_line} ({func_size} lines)")
-            
+
             func_line_end = func_line + func_size + 3
             if func_line_end + 1 <= len(lines):
                 if len(lines[func_line_end - 1]) == 0 and len(lines[func_line_end]) == 0:
                     print(f"[MINOR] {filepath}: G2, wrong function spacing line {func_line_end}")
-        
+
         func_nb = len(funcs)
         if func_nb > self.c_norm["max_funcs_per_file"]:
             print(f"[MAJOR] {filepath}: O3, too many functions ({func_nb}>{self.c_norm['max_funcs_per_file']})")

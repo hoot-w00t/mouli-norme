@@ -100,7 +100,7 @@ if __name__ == "__main__":
     if not isdir(args.addons_folder):
         print(f"Addons folder: {args.addons_folder}: doesn't exist")
         exit(1)
-    
+
     if args.verbose : print(f"Using addons folder: {args.addons_folder}")
 
     try:
