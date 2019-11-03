@@ -66,6 +66,17 @@ class Moulinette:
             if line_len > self.global_norm["max_columns"]:
                 print(f"[MAJOR] {filepath}: F3, too long line ({line_len} columns, line {line_nb})")
             line_nb += 1
+    
+    def check_indent(self, filepath, lines):
+        line_nb = 1
+        for line in lines:
+            line_len = len(line.rstrip())
+            line_strip = len(line.strip())
+            indentation = line_len - line_strip
+            if indentation % self.global_norm["indent_space"] != 0:
+                print(f"[MINOR] {filepath}: L2, wrong indentation (line {line_nb})")
+            
+            line_nb += 1
 
     def lines_to_list(self, filepath):
         lines = []

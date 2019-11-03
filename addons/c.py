@@ -137,6 +137,7 @@ class MoulinetteAddon:
             lines=lines
         )
 
+        self.moulinette.check_indent(filepath, lines)
         self.c_functions(filepath, lines)
 
         lines.clear()
