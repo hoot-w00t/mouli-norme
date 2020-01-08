@@ -54,9 +54,20 @@ class MoulinetteAddon:
                 c_func.append(line_nb - 1)
                 is_func = True
 
-            is_comment = [line.find(comment) >= 0 and  line_nb > 6 for comment in ["// ", "/* ", "*/ "]]
-            if any(is_comment):
-                self.moulinette.add_norm_violation(f"F6, comment", filepath, line=line_nb, severity=1)
+            if line_nb > 6:
+                comments = [line.find(comment) for comment in ["//", "/*", "*/"]]
+                dquotes = [i for i, s in enumerate(line) if s == '"']
+
+                for comment in comments:
+                    if comment == -1 : continue
+                    lower = False
+                    higher = False
+                    for dquote in dquotes:
+                        if dquote < comment : lower = True
+                        if dquote > comment : higher = True
+
+                    if not (lower and higher):
+                        self.moulinette.add_norm_violation(f"F6, comment", filepath, line=line_nb, severity=1)
 
             line_nb += 1
 
