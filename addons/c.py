@@ -45,7 +45,7 @@ class MoulinetteAddon:
         is_func = False
 
         for line in lines:
-            if line == '}' and is_func:
+            if line .startswith('}') and is_func:
                 is_func = False
                 funcs.append(c_func)
                 c_func = []
@@ -56,7 +56,7 @@ class MoulinetteAddon:
 
             is_comment = [line.find(comment) >= 0 and  line_nb > 6 for comment in ["// ", "/* ", "*/ "]]
             if any(is_comment):
-                print(f"[MINOR] {filepath}: F6, comment at line {line_nb}")
+                self.moulinette.add_norm_violation(f"F6, comment", filepath, line=line_nb, severity=1)
 
             line_nb += 1
 
@@ -69,7 +69,7 @@ class MoulinetteAddon:
         wo_ma = re.match("^([a-zA-Z0-9_\\* ]*) ([a-zA-Z0-9_\*,\\[\\]\\-+ ]*);", line)
 
         if (w_ma or wo_ma) and not (w_a or wo_a):
-            print(f"[MINOR] {filepath}: L5, multiple declarations on the same line (line {line_nb})")
+            self.moulinette.add_norm_violation(f"L5, multiple declarations on the same line", filepath, line=line_nb, severity=1)
             return True
 
         if w_a or wo_a:
@@ -87,9 +87,9 @@ class MoulinetteAddon:
             decl_params = func_decl[func_decl.find("(") + 1:func_decl.find(")")]
             param_count = len(decl_params.split(','))
             if len(decl_params) == 0:
-                print(f"[MAJOR] {filepath}: F5, a function with no parameters should take (void), at line {func_line}")
+                self.moulinette.add_norm_violation(f"F5, a function with no parameters should take (void)", filepath, line=func_line, severity=2)
             elif param_count > self.c_norm["max_params_per_func"]:
-                print(f"[MAJOR] {filepath}: F5, function takes too many parameters ({param_count}) at line {func_line}")
+                self.moulinette.add_norm_violation(f"F5, function takes too many parameters ({param_count})", filepath, line=func_line, severity=2)
 
             for i in range(1, func_size + 1):
                 line = func[i].strip()
@@ -99,29 +99,27 @@ class MoulinetteAddon:
                     variable_decl = is_var_decl
 
                 if len(line) == 0 and not variable_decl:
-                    print(f"[MINOR] {filepath}: L6, only one line break should be found after the variable declarations (line {line_nb})")
+                    self.moulinette.add_norm_violation("L6, only one line break should be found after the variable declarations", filepath, line=line_nb, severity=1)
 
                 if not is_var_decl:
                     if len(line) > 0 and variable_decl:
-                        print(f"[MINOR] {filepath}: L6, a line break should separate the variable declarations from the remainder of the function (line {line_nb})")
+                        self.moulinette.add_norm_violation("L6, a line break should separate the variable declarations from the remainder of the function", filepath, line=line_nb, severity=1)
                     variable_decl = False
 
                 if is_var_decl and not variable_decl:
-                    print(f"[MINOR] {filepath}: L5, variables should be declared at the beginning of the scope of the function (line {line_nb})")
-
+                    self.moulinette.add_norm_violation("L5, variables should be declared at the beginning of the scope of the function", filepath, line=line_nb, severity=1)
 
             if func_size > self.c_norm["max_func_lines"]:
-                print(f"[MAJOR] {filepath}: F4, too long function at line {func_line} ({func_size} lines)")
+                self.moulinette.add_norm_violation(f"F4, too long function at line ({func_size} lines)", filepath, line=func_line, severity=2)
 
             func_line_end = func_line + func_size + 3
             if func_line_end + 1 <= len(lines):
                 if len(lines[func_line_end - 1]) == 0 and len(lines[func_line_end]) == 0:
-                    print(f"[MINOR] {filepath}: G2, wrong function spacing line {func_line_end}")
+                    self.moulinette.add_norm_violation("G2, wrong function spacing", filepath, line=func_line_end, severity=1)
 
         func_nb = len(funcs)
         if func_nb > self.c_norm["max_funcs_per_file"]:
-            print(f"[MAJOR] {filepath}: O3, too many functions ({func_nb}>{self.c_norm['max_funcs_per_file']})")
-
+            self.moulinette.add_norm_violation(f"O3, too many functions ({func_nb}>{self.c_norm['max_funcs_per_file']})", filepath, line=0, severity=2)
 
     def process_file(self, filepath):
         lines = self.moulinette.lines_to_list(filepath)

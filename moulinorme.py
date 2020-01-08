@@ -25,11 +25,52 @@ from importlib import machinery
 import types
 import re
 
+class bcolors:
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+
 class Moulinette:
     global_norm = {
         "indent_space": 4,
         "max_columns": 80,
     }
+
+    def __init__(self):
+        self.violations = {}
+
+    def add_norm_violation(self, message: str, filepath: str, severity: int = 0, line: int = 0):
+        if self.violations.get(filepath) == None:
+            self.violations[filepath] = []
+        self.violations[filepath].append({
+            "severity": severity,
+            "line": line,
+            "message": message,
+        })
+
+    def print_norm_violations(self):
+        if len(self.violations) == 0:
+            print(f"{bcolors.OKGREEN}No norm violations found!{bcolors.ENDC}")
+
+        for filepath in self.violations:
+            count = len(self.violations[filepath])
+            if count == 1:
+                print(f"{bcolors.OKBLUE}{filepath}{bcolors.ENDC}: {count} violation")
+            else:
+                print(f"{bcolors.OKBLUE}{filepath}{bcolors.ENDC}: {count} violations")
+
+            for violation in self.violations[filepath]:
+                if violation["severity"] == 1:
+                    severity_t = f"{bcolors.WARNING}Minor{bcolors.ENDC}:"
+                elif violation["severity"] == 2:
+                    severity_t = f"{bcolors.FAIL}Major{bcolors.ENDC}:"
+                else:
+                    severity_t = f"{bcolors.OKGREEN}Info{bcolors.ENDC}:"
+
+                print(f"    {severity_t} {bcolors.OKBLUE}line {format(int(violation['line']), '-4d')}{bcolors.ENDC}: {violation['message']}")
 
     def escape_separator(self, separator):
         new_separator = ""
@@ -39,7 +80,7 @@ class Moulinette:
 
     def check_header(self, filepath, lines, comment_separator=["/*", "**", "*/"]):
         if len(lines) < 6:
-            print(f"[MAJOR] {filepath}: G1, missing header")
+            self.add_norm_violation("G1, missing header", filepath, line=0, severity=2)
             return
         wrong_lines = []
         if lines[0] != comment_separator[0]:
@@ -55,18 +96,19 @@ class Moulinette:
         if lines[5] != comment_separator[2]:
             wrong_lines.append("6")
         if len(wrong_lines) == 6:
-            print(f"[MAJOR] {filepath}: G1, missing header")
+            self.add_norm_violation("G1, missing header", filepath, line=0, severity=2)
         elif len(wrong_lines) > 0:
-            print(f"[MAJOR] {filepath}: G1, wrong header, lines {', '.join(wrong_lines)}")
+            for line in wrong_lines:
+                self.add_norm_violation("G1, wrong header", filepath, line=line, severity=2)
 
     def check_columns(self, filepath, lines):
         line_nb = 1
         for line in lines:
             line_len = len(line) + 1
             if line_len > self.global_norm["max_columns"]:
-                print(f"[MAJOR] {filepath}: F3, too long line ({line_len} columns, line {line_nb})")
+                self.add_norm_violation(f"F3, too long line ({line_len} columns)", filepath, line=line_nb, severity=2)
             line_nb += 1
-    
+
     def check_indent(self, filepath, lines):
         line_nb = 1
         for line in lines:
@@ -74,8 +116,7 @@ class Moulinette:
             line_strip = len(line.strip())
             indentation = line_len - line_strip
             if indentation % self.global_norm["indent_space"] != 0:
-                print(f"[MINOR] {filepath}: L2, wrong indentation (line {line_nb})")
-            
+                self.add_norm_violation("L2, wrong indentation", filepath, line=line_nb, severity=1)
             line_nb += 1
 
     def lines_to_list(self, filepath):
@@ -95,6 +136,7 @@ if __name__ == "__main__":
     addons = {}
 
     arg_parser = ArgumentParser(description="Mouli-norme")
+    arg_parser.add_argument("-e", "--exclude", dest="exclude_file", nargs="?", default=None, help="Exclude files that you do not want to process.")
     arg_parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Display additionnal (debug) information.")
     arg_parser.add_argument("-d", "--display", dest="display_files", action="store_true", help="Show each file that is being processed.")
     arg_parser.add_argument("--addons", dest="addons_folder", nargs="?", default="./addons", help="Path to the addons folder (default=./addons)")
@@ -167,6 +209,9 @@ if __name__ == "__main__":
         exit(1)
 
     for _file in args.files:
+        if _file == args.exclude_file:
+            continue
+
         if isdir(_file):
             if args.verbose : print(f"Exploring directory: {_file}")
             for sub_file in listdir(_file):
@@ -187,3 +232,5 @@ if __name__ == "__main__":
         elif name in handlers["filenames"]:
             func = getattr(handlers["filenames"][name], "process_file")
             func(_file)
+
+    moulinette.print_norm_violations()
