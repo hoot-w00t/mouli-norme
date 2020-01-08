@@ -17,4 +17,4 @@ sudo ./install.sh
 You can also uninstall it using the `uninstall.sh` script.
 
 ## Norm checks
-The currently implemented norm rules are: G1, G2, O3, L2 (partly), L5, L6, F3, F4, F5, F6
+The currently implemented norm rules are: G1, G2, O3, L2 (partly), L3, L5, L6, F3, F4, F5, F6

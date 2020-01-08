@@ -120,6 +120,12 @@ class MoulinetteAddon:
                 if is_var_decl and not variable_decl:
                     self.moulinette.add_norm_violation("L5, variables should be declared at the beginning of the scope of the function", filepath, line=line_nb, severity=1)
 
+                dquotes = [i for i, s in enumerate(line) if s == '"']
+                for keyword in ["if", "while", "for", "return", "switch", "do"]:
+                    kp = line.find(f"{keyword}(")
+                    if kp != -1:
+                        self.moulinette.add_norm_violation(f"L3, missing space after '{keyword}'", filepath, line=line_nb, severity=1)
+
             if func_size > self.c_norm["max_func_lines"]:
                 self.moulinette.add_norm_violation(f"F4, too long function at line ({func_size} lines)", filepath, line=func_line, severity=2)
 
