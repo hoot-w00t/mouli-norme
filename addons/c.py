@@ -127,7 +127,7 @@ class MoulinetteAddon:
                         self.moulinette.add_norm_violation(f"L3, missing space after '{keyword}'", filepath, line=line_nb, severity=1)
 
             if func_size > self.c_norm["max_func_lines"]:
-                self.moulinette.add_norm_violation(f"F4, too long function at line ({func_size} lines)", filepath, line=func_line, severity=2)
+                self.moulinette.add_norm_violation(f"F4, too long function ({func_size} lines)", filepath, line=func_line, severity=2)
 
             func_line_end = func_line + func_size + 3
             if func_line_end + 1 <= len(lines):
