@@ -54,6 +54,7 @@ def main():
     arg_parser = ArgumentParser(description=f"Moulinorme {moulinorme.__version__}")
     arg_parser.add_argument("-V", "--version", dest="version", action="store_true", help="Display Moulinorme version")
     arg_parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Increase verbosity")
+    arg_parser.add_argument("-n", "--no-color", dest="no_color", action="store_true", help="Don't colorize output")
     arg_parser.add_argument("-u", "--unnecessary", dest="unnecessary", action="store_true", help="Handle unnecessary files")
     arg_parser.add_argument("-r", "--recursive", dest="recursive", action="store_true", help="Recursively list subdirectories")
     arg_parser.add_argument("-d", "--delivery", dest="delivery", action="store_true", help="Delivery check, equivalent to -ur")
@@ -64,7 +65,7 @@ def main():
         args.unnecessary = True
         args.recursive = True
 
-    if sys.stdout.isatty() and sys.stderr.isatty():
+    if sys.stdout.isatty() and sys.stderr.isatty() and not args.no_color:
         colorize = True
     else:
         colorize = False
