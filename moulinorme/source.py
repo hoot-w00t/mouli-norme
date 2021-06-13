@@ -280,6 +280,27 @@ class CFileDefs(SourceFile):
                     if kp != -1:
                         self.append_message(line_nb, f"L3, missing space after '{keyword}'", SeverityMinor())
 
+    def check_includes(self):
+        """Check if include directives only include header files (.h)"""
+
+        line_nb = 1
+        include_lines = list()
+
+        for line in self.lines:
+            line = line.strip()
+            if re.match(r'^\#include(.*)["<](.*)[">](.*)$', line):
+                include_lines.append((line, line_nb))
+
+            line_nb += 1
+
+        for include_line in include_lines:
+            if not re.match(r'^\#include(.*)["<](.*)\.h[">](.*)$', include_line[0]):
+                self.append_message(
+                    include_line[1],
+                    "G6, include directives should only include header files",
+                    SeverityMajor()
+                )
+
 class HFile(CFileDefs):
     def check_file(self):
         """Perform all norm checks"""
@@ -288,6 +309,7 @@ class HFile(CFileDefs):
         self.check_filename()
         self.check_indent()
         self.check_trailing_whitespace()
+        self.check_includes()
 
 class CFile(CFileDefs):
     def check_file(self):
@@ -298,6 +320,7 @@ class CFile(CFileDefs):
         self.check_filename()
         self.check_indent()
         self.check_trailing_whitespace()
+        self.check_includes()
 
         funcs_nb = len(self.functions)
         if funcs_nb > self._max_funcs:

@@ -19,6 +19,7 @@ The following rules are checked:
 | Rule | Description                                                        |
 |:----:|--------------------------------------------------------------------|
 | G1   | File header                                                        |
+| G6   | Include directives should only include header files (.h)           |
 | L2   | Indentation (only checks for a valid indentation level, see below) |
 | L3   | Spaces                                                             |
 | F2   | Naming functions                                                   |
