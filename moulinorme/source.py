@@ -35,6 +35,7 @@ class SourceFile:
         self._header_mid = "**"
         self._header_end = "*/"
 
+        self._tabsize = 1
         self._indent_size = 4
         self._max_columns = 80
 
@@ -50,7 +51,7 @@ class SourceFile:
         with self._filename.open("r") as h:
             self.raw_lines = h.readlines()
 
-        self.lines = [line.replace("\n", "").expandtabs(tabsize=self._indent_size) for line in self.raw_lines]
+        self.lines = [line.replace("\n", "").expandtabs(tabsize=self._tabsize) for line in self.raw_lines]
 
     def append_message(self, line: int, message: str, severity: Severity):
         self.messages.append(NormMessage(
@@ -110,7 +111,7 @@ class SourceFile:
                 self.append_message(line_nb, "G1, invalid header", SeverityMajor())
 
     def check_columns(self):
-        """Check if any line exceeds _max_columns width (tabs expanded to _indent_size spaces)"""
+        """Check if any line exceeds _max_columns width (tabs expanded to _tabsize spaces)"""
 
         line_nb = 1
         for line in self.lines:
